@@ -9,7 +9,7 @@ $ git clone <this-repo-url>
 
 $ cd <this-repo-folder>
 
-$ python -m venv venv
+$ python -m venv venv # or python3 -m venv venv
 
 $ venv\Scripts\activate  # or source venv/bin/activate in Linux/Mac
 
