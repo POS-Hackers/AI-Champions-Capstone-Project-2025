@@ -2,6 +2,8 @@ import streamlit as st
 import os
 import dotenv
 import uuid
+import random  
+import hmac 
 
 # check if it's linux so it works on Streamlit Cloud
 if os.name == 'posix':
@@ -12,6 +14,7 @@ if os.name == 'posix':
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import HumanMessage, AIMessage
+from langchain_deepseek import ChatDeepSeek
 
 from rag_methods import (
     load_doc_to_db, 
@@ -28,22 +31,42 @@ if "AZ_OPENAI_API_KEY" not in os.environ:
         "openai/gpt-4o",
         "openai/gpt-4o-mini",
         "anthropic/claude-3-5-sonnet-20240620",
+        "deepseek/deepseek-chat",
     ]
 else:
     MODELS = ["azure-openai/gpt-4o"]
 
 
 st.set_page_config(
-    page_title="RAG LLM app?", 
+    page_title="SysBuddy", 
     page_icon="📚", 
     layout="centered", 
     initial_sidebar_state="expanded"
 )
 
-
 # --- Header ---
-st.html("""<h2 style="text-align: center;">📚🔍 <i> POS Chatbot </i> 🤖💬</h2>""")
+st.html("""<h2 style="text-align: center;"><i> SysBuddy - AI Chatbot for System Management </i> </h2>""")
 
+# --- Function to request for password ---
+def check_password():  
+    """Returns `True` if the user had the correct password."""  
+    def password_entered():  
+        """Checks whether a password entered by the user is correct."""  
+        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):  
+            st.session_state["password_correct"] = True  
+            del st.session_state["password"]  # Don't store the password.  
+        else:  
+            st.session_state["password_correct"] = False  
+    # Return True if the passward is validated.  
+    if st.session_state.get("password_correct", False):  
+        return True  
+    # Show input for password.  
+    st.text_input(  
+        "Password", type="password", on_change=password_entered, key="password"  
+    )  
+    if "password_correct" in st.session_state:  
+        st.error("😕 Password incorrect")  
+    return False
 
 # --- Initial Setup ---
 if "session_id" not in st.session_state:
@@ -58,6 +81,8 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Hi there! How can I assist you today?"}
 ]
 
+if not check_password():  
+    st.stop()
 
 # --- Side Bar LLM API Tokens ---
 with st.sidebar:
@@ -79,9 +104,18 @@ with st.sidebar:
                 type="password",
                 key="anthropic_api_key",
             )
+        default_deepseek_api_key= os.getenv('DEEPSEEL-API_KEY') if os.getenv("DEEPSEEK_API_KEY") is not None else ""
+        with st.popover("🔐 DeepSeek"):
+            deepseek_api_key = st.text_input(
+                "Introduce your DeepSeek API Key (https://platform.deepseek.com/)", 
+                value=default_deepseek_api_key, 
+                type="password",
+                key="deepseek_api_key",
+            )
     else:
         openai_api_key, anthropic_api_key = None, None
         st.session_state.openai_api_key = None
+        # st.session_state.deepseek_api_key = None
         az_openai_api_key = os.getenv("AZ_OPENAI_API_KEY")
         st.session_state.az_openai_api_key = az_openai_api_key
 
@@ -90,6 +124,8 @@ with st.sidebar:
 # Checking if the user has introduced the OpenAI API Key, if not, a warning is displayed
 missing_openai = openai_api_key == "" or openai_api_key is None or "sk-" not in openai_api_key
 missing_anthropic = anthropic_api_key == "" or anthropic_api_key is None
+missing_deepseek = deepseek_api_key == "" or deepseek_api_key is None
+
 if missing_openai and missing_anthropic and ("AZ_OPENAI_API_KEY" not in os.environ):
     st.write("#")
     st.warning("⬅️ Please introduce an API Key to continue...")
@@ -103,6 +139,8 @@ else:
             if "openai" in model and not missing_openai:
                 models.append(model)
             elif "anthropic" in model and not missing_anthropic:
+                models.append(model)
+            elif "deepseek" in model and not missing_deepseek:
                 models.append(model)
             elif "azure-openai" in model:
                 models.append(model)
@@ -162,6 +200,13 @@ else:
         llm_stream = ChatAnthropic(
             api_key=anthropic_api_key,
             model=st.session_state.model.split("/")[-1],
+            temperature=0.3,
+            streaming=True,
+        )
+    elif model_provider == "deepseek":
+        llm_stream = ChatDeepSeek(
+            api_key=deepseek_api_key,
+             model=st.session_state.model.split("/")[-1],
             temperature=0.3,
             streaming=True,
         )
