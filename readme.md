@@ -2,7 +2,7 @@
 
 ## 🧠 About
 
-SysBuddy is a **Retrieval-Augmented Generation (RAG)** web application built with Python, Streamlit, and LangChain that provides AI chatbot functionality and can hold relevent information about the project.
+SysBuddy is a **Retrieval-Augmented Generation (RAG)** web application built with Python, Streamlit, and LangChain which provides AI chatbot functionality and hold relevent information about the project.
 
 ## 🚀 Instructions to run locally  
 
