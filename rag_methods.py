@@ -1,11 +1,12 @@
 import os
-import dotenv
+# import dotenv (commented out as Streamlit community cloud dont support .env)
 from time import time
 import streamlit as st
 
-# Load environment variables
-dotenv.load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
+# Load environment variables (commented out as Streamlit community cloud dont support .env)
+# dotenv.load_dotenv()
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = st.secrets["OPENAI_API_KEY"]
 
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders import (
@@ -13,6 +14,10 @@ from langchain_community.document_loaders import (
     PyPDFLoader, 
     Docx2txtLoader,
 )
+
+# Assign USER_AGENT
+os.environ["USER_AGENT"] = st.secrets["USER_AGENT"]
+
 # pip install docx2txt, pypdf
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
