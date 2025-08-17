@@ -44,7 +44,7 @@ st.set_page_config(
 
 
 # --- Header ---
-st.html("""<h2 style="text-align: center;">📚🔍 <i> POS Chatbot </i> 🤖💬</h2>""")
+st.html("""<h2 style="text-align: center;"><i> POS Chatbot </i> </h2>""")
 
 
 # --- Initial Setup ---
@@ -92,7 +92,7 @@ with st.sidebar:
     else:
         openai_api_key, anthropic_api_key = None, None
         st.session_state.openai_api_key = None
-        #st.session_date.deepseek-api_key = None
+        # st.session_state.deepseek_api_key = None
         az_openai_api_key = os.getenv("AZ_OPENAI_API_KEY")
         st.session_state.az_openai_api_key = az_openai_api_key
 

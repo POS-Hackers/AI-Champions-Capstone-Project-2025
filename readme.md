@@ -1,22 +1,19 @@
-# Do your LLM even RAG bro?
+# Readme
 
-RAG web application using Python, Streamlit and LangChain, so you can chat with Documents, Websites and other custom data.
+RAG web application using Python, Streamlit and LangChain.
 
-To run it locally:
+Instructions to run the web app locally:
 
 ```bash
-$ git clone <this-repo-url>
+git clone <this-repo-url>
 
-$ cd <this-repo-folder>
+cd <this-repo-folder>
 
-$ python -m venv venv # or python3 -m venv venv
+python -m venv venv # or python3 -m venv venv
 
-$ venv\Scripts\activate  # or source venv/bin/activate in Linux/Mac
+venv\Scripts\activate  # or source venv/bin/activate in Linux/Mac
 
-$ pip install -r requirements.txt
+pip install -r requirements.txt # if doing pip backtracking, add this flag to temporarily use the old resolver
 
-$ streamlit run app.py
+streamlit run app.py
 ```
-
-Video: https://youtu.be/abMwFViFFhI  
-Blog: https://medium.com/@enricdomingo  
