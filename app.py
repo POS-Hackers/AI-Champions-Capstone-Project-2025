@@ -2,6 +2,8 @@ import streamlit as st
 import os
 import dotenv
 import uuid
+import random  
+import hmac 
 
 # check if it's linux so it works on Streamlit Cloud
 if os.name == 'posix':
@@ -36,16 +38,35 @@ else:
 
 
 st.set_page_config(
-    page_title="RAG LLM app?", 
+    page_title="SysBuddy", 
     page_icon="📚", 
     layout="centered", 
     initial_sidebar_state="expanded"
 )
 
-
 # --- Header ---
-st.html("""<h2 style="text-align: center;"><i> POS Chatbot </i> </h2>""")
+st.html("""<h2 style="text-align: center;"><i> SysBuddy - AI Chatbot for System Management </i> </h2>""")
 
+# --- Function to request for password ---
+def check_password():  
+    """Returns `True` if the user had the correct password."""  
+    def password_entered():  
+        """Checks whether a password entered by the user is correct."""  
+        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):  
+            st.session_state["password_correct"] = True  
+            del st.session_state["password"]  # Don't store the password.  
+        else:  
+            st.session_state["password_correct"] = False  
+    # Return True if the passward is validated.  
+    if st.session_state.get("password_correct", False):  
+        return True  
+    # Show input for password.  
+    st.text_input(  
+        "Password", type="password", on_change=password_entered, key="password"  
+    )  
+    if "password_correct" in st.session_state:  
+        st.error("😕 Password incorrect")  
+    return False
 
 # --- Initial Setup ---
 if "session_id" not in st.session_state:
@@ -60,6 +81,8 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Hi there! How can I assist you today?"}
 ]
 
+if not check_password():  
+    st.stop()
 
 # --- Side Bar LLM API Tokens ---
 with st.sidebar:
