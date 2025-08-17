@@ -13,7 +13,7 @@ python -m venv venv # or python3 -m venv venv
 
 venv\Scripts\activate  # or source venv/bin/activate in Linux/Mac
 
-pip install -r requirements.txt # if doing pip backtracking, add this flag "--use-deprecated=legacy-resolver" to temporarily use the old resolver
+pip install -r requirements.txt
 
 streamlit run app.py
 ```

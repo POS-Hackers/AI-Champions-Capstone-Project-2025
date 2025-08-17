@@ -3,6 +3,10 @@ import dotenv
 from time import time
 import streamlit as st
 
+# Load environment variables
+dotenv.load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders import (
     WebBaseLoader, 
@@ -17,9 +21,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
-dotenv.load_dotenv()
-
-os.environ["USER_AGENT"] = "myagent"
 DB_DOCS_LIMIT = 10
 
 # Function to stream the response of the LLM 
@@ -100,7 +101,8 @@ def load_url_to_db():
 
 def initialize_vector_db(docs):
     if "AZ_OPENAI_API_KEY" not in os.environ:
-        embedding = OpenAIEmbeddings(api_key=st.session_state.openai_api_key)
+        # embedding = OpenAIEmbeddings(api_key=st.session_state.openai_api_key)
+        embedding = OpenAIEmbeddings(api_key=openai_api_key )
     else:
         embedding = AzureOpenAIEmbeddings(
             api_key=os.getenv("AZ_OPENAI_API_KEY"), 
