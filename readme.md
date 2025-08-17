@@ -1,8 +1,10 @@
 # Readme
 
-RAG web application using Python, Streamlit and LangChain.
+## 🧠 About
 
-Instructions to run the web app locally:
+SysBuddy is a **Retrieval-Augmented Generation (RAG)** web application built with Python, Streamlit, and LangChain that provides AI chatbot functionality and can hold relevent information about the project.
+
+## 🚀 Instructions to run locally  
 
 ```bash
 git clone <this-repo-url>
@@ -17,3 +19,9 @@ pip install -r requirements.txt
 
 streamlit run app.py
 ```
+
+## 📄 Documentation
+
+[About Us](https://raw.githubusercontent.com/POS-Hackers/AI-Champions-Capstone-Project-2025/main/docs/about_us.pdf)
+
+[Methodology](https://raw.githubusercontent.com/POS-Hackers/AI-Champions-Capstone-Project-2025/main/docs/methodology.pdf)

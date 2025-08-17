@@ -4,53 +4,9 @@ import dotenv
 import uuid
 import random  
 import hmac 
+import requests
 
-# check if it's linux so it works on Streamlit Cloud
-if os.name == 'posix':
-    __import__('pysqlite3')
-    import sys
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
-# Load environment variables
-dotenv.load_dotenv()
-
-from langchain_openai import ChatOpenAI, AzureChatOpenAI
-from langchain.schema import HumanMessage, AIMessage
-from langchain_deepseek import ChatDeepSeek
-
-from rag_methods import (
-    load_doc_to_db, 
-    load_url_to_db,
-    stream_llm_response,
-    stream_llm_rag_response,
-)
-
-# Loading LLM API Tokens
-openai_api_key = os.getenv("OPENAI_API_KEY")
-deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
-
-if "AZ_OPENAI_API_KEY" not in os.environ:
-    MODELS = [
-        # "openai/o1-mini",
-        "openai/gpt-4o",
-        "openai/gpt-4o-mini",
-        "deepseek/deepseek-chat",
-    ]
-else:
-    MODELS = ["azure-openai/gpt-4o"]
-
-
-st.set_page_config(
-    page_title="SysBuddy", 
-    page_icon="📚", 
-    layout="centered", 
-    initial_sidebar_state="expanded"
-)
-
-# --- Header ---
-st.html("""<h2 style="text-align: center;"><i> SysBuddy - AI Chatbot for System Management </i> </h2>""")
-
-# --- Function to request for password ---
+# # --- Function to Check Password --
 def check_password():  
     """Returns `True` if the user had the correct password."""  
     def password_entered():  
@@ -71,7 +27,60 @@ def check_password():
         st.error("😕 Password incorrect")  
     return False
 
-# --- Initial Setup ---
+# # --- App Setup ---
+# Check if it's linux so it works on Streamlit Cloud
+if os.name == 'posix':
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# Load environment variables
+dotenv.load_dotenv()
+
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
+from langchain.schema import HumanMessage, AIMessage
+from langchain_deepseek import ChatDeepSeek
+
+from rag_methods import (
+    load_doc_to_db, 
+    load_url_to_db,
+    stream_llm_response,
+    stream_llm_rag_response,
+)
+
+# Load LLM API Tokens
+openai_api_key = os.getenv("OPENAI_API_KEY")
+deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
+
+# Get "About Us" & "Methodology" docs from Github
+about_us_url = os.getenv("ABOUT_US_DOC_URL")
+methodology_url = os.getenv("METHODOLOGY_DOC_URL")
+
+about_us_response = requests.get(about_us_url)
+methodology_response = requests.get(methodology_url)
+
+# List available LLM models
+if "AZ_OPENAI_API_KEY" not in os.environ:
+    MODELS = [
+        "openai/gpt-4o",
+        "openai/gpt-4o-mini",
+        "deepseek/deepseek-chat",
+    ]
+else:
+    MODELS = ["azure-openai/gpt-4o"]
+
+# Set Page Config
+st.set_page_config(
+    page_title="SysBuddy", 
+    page_icon="🤖", 
+    layout="centered", 
+    initial_sidebar_state="expanded"
+)
+
+# Set Header
+st.html("""<h2 style="text-align: center;"><i> SysBuddy - AI Chatbot for System Management </i> </h2>""")
+
+# Session State Initialisation
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
@@ -84,10 +93,10 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Hello! How can I assist you?"}
 ]
 
+# Initial password check
 if not check_password():  
     st.stop()
 
-# # --- Main Content ---
 # Checking if the user has introduced the OpenAI API Key, if not, a warning is displayed
 missing_openai = openai_api_key == "" or openai_api_key is None
 missing_deepseek = deepseek_api_key == "" or deepseek_api_key is None
@@ -96,9 +105,22 @@ if missing_openai and missing_deepseek:
     st.write("#")
     st.warning("⬅️ Please set API key in system environment and reboot app...")
 
-# Sidebar
+# # --- Disclaimer ---
+with st.expander("📢 **Disclaimer**"):
+    st.markdown("""
+    **IMPORTANT NOTICE:** This web application is developed as a proof-of-concept prototype.  
+    The information provided here is **NOT** intended for actual usage and should not be relied upon for making any decisions, especially those related to **financial**, **legal**, or **healthcare** matters.
+
+    Furthermore, please be aware that the **LLM may generate inaccurate or incorrect information**.  
+    You assume full responsibility for how you use any generated output.
+
+    Always consult with **qualified professionals** for accurate and personalized advice.
+    """)
+
+# # --- Sidebar ---
 with st.sidebar:
-    # st.divider()
+
+    # -- Sidebar Section #1 --
     st.markdown(
         "<hr style='margin: 5px 0; padding: 0;'>",
         unsafe_allow_html=True
@@ -131,9 +153,9 @@ with st.sidebar:
     with cols0[1]:
         st.button("Clear Chat", on_click=lambda: st.session_state.messages.clear(), type="primary")
 
-    # st.divider()
+    # -- Sidebar Section #2 --
     st.markdown(
-        "<hr style='margin: 5px 0; padding: 0;'>",
+        "<hr style='margin: 3px 0; padding: 0;'>",
         unsafe_allow_html=True
     )
     st.header("RAG Sources:")
@@ -155,16 +177,45 @@ with st.sidebar:
         key="rag_url",
     )
 
-    # st.divider()
+    # -- Sidebar Section #3 --
     st.markdown(
-        "<hr style='margin: 5px 0; padding: 0;'>",
+        "<hr style='margin: 3px 0; padding: 0;'>",
         unsafe_allow_html=True
     )
     st.header("Knowledge Base:")
     with st.expander(f"📚 Documents in DB ({0 if not is_vector_db_loaded else len(st.session_state.rag_sources)})"):
         st.write([] if not is_vector_db_loaded else [source for source in st.session_state.rag_sources])
 
-# Main chat app
+    # -- Sidebar Section #4 --
+    st.markdown(
+        "<hr style='margin: 3px 0; padding: 0;'>",
+        unsafe_allow_html=True
+    )
+    st.header("Documentation:")
+    if about_us_response.status_code == 200:
+        st.download_button(
+            label="📄 Download About Us",
+            data=about_us_response.content,
+            file_name="About_Us.pdf",
+            mime="application/pdf",
+            key="about_us_download"
+        )
+    else:
+        st.error("❌ Failed to load About Us document.")
+    
+    # Download button for Methodology
+    if methodology_response.status_code == 200:
+        st.download_button(
+            label="📄 Download Methodology",
+            data=methodology_response.content,
+            file_name="Methodology.pdf",
+            mime="application/pdf",
+            key="methodology_download"
+        )
+    else:
+        st.error("❌ Failed to load Methodology document.")
+
+# --- Main Chat App ---
 model_provider = st.session_state.model.split("/")[0]
 if model_provider == "openai":
     llm_stream = ChatOpenAI(
