@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-import dotenv
+# import dotenv (commented out as Streamlit community cloud dont support .env)
 import uuid
 import random  
 import hmac 
@@ -34,8 +34,8 @@ if os.name == 'posix':
     import sys
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-# Load environment variables
-dotenv.load_dotenv()
+# Assign USER_AGENT
+os.environ["USER_AGENT"] = st.secrets["USER_AGENT"]
 
 from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langchain.schema import HumanMessage, AIMessage
@@ -48,13 +48,17 @@ from rag_methods import (
     stream_llm_rag_response,
 )
 
-# Load LLM API Tokens
-openai_api_key = os.getenv("OPENAI_API_KEY")
-deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
+# Load LLM API Tokens and relevant docs URL from Github
+# Commented as Streamlit coomunity cloud dont support .env
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+# deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
+# about_us_url = os.getenv("ABOUT_US_DOC_URL")
+# methodology_url = os.getenv("METHODOLOGY_DOC_URL")
 
-# Get "About Us" & "Methodology" docs from Github
-about_us_url = os.getenv("ABOUT_US_DOC_URL")
-methodology_url = os.getenv("METHODOLOGY_DOC_URL")
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+deepseek_api_key = st.secrets["DEEPSEEK_API_KEY"]
+about_us_url = st.secrets["ABOUT_US_DOC_URL"]
+methodology_url = st.secrets["METHODOLOGY_DOC_URL"]
 
 about_us_response = requests.get(about_us_url)
 methodology_response = requests.get(methodology_url)
