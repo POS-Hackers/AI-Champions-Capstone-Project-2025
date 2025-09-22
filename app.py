@@ -63,6 +63,8 @@ methodology_url = st.secrets["METHODOLOGY_DOC_URL"]
 about_us_response = requests.get(about_us_url)
 methodology_response = requests.get(methodology_url)
 
+selected_project = "Digital Multi-Channel Recorder"
+
 # List available LLM models
 if "AZ_OPENAI_API_KEY" not in os.environ:
     MODELS = [
@@ -82,7 +84,13 @@ st.set_page_config(
 )
 
 # Set Header
-st.html("""<h2 style="text-align: center;"><i> SysBuddy - AI Chatbot for System Management </i> </h2>""")
+st.html("""<h2 style="text-align: center; "><i> SysBuddy - Virtual AI Team Member </i> </h2>""")
+
+def reset_chat():
+    st.session_state.messages = [
+        {"role": "user", "content": "Hello there!"},
+        {"role": "assistant", "content": "Hello! How can I assist you today?"}
+    ]
 
 # Session State Initialisation
 if "session_id" not in st.session_state:
@@ -93,8 +101,8 @@ if "rag_sources" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "user", "content": "Hello"},
-        {"role": "assistant", "content": "Hello! How can I assist you?"}
+        {"role": "user", "content": "Hello there!"},
+        {"role": "assistant", "content": "Hello! How can I assist you today?"}
 ]
 
 # Initial password check
@@ -109,22 +117,25 @@ if missing_openai and missing_deepseek:
     st.write("#")
     st.warning("⬅️ Please set API key in system environment and reboot app...")
 
-# # --- Disclaimer ---
-with st.expander("📢 **Disclaimer**"):
-    st.markdown("""
-    **IMPORTANT NOTICE:** This web application is developed as a proof-of-concept prototype.  
-    The information provided here is **NOT** intended for actual usage and should not be relied upon for making any decisions, especially those related to **financial**, **legal**, or **healthcare** matters.
-
-    Furthermore, please be aware that the **LLM may generate inaccurate or incorrect information**.  
-    You assume full responsibility for how you use any generated output.
-
-    Always consult with **qualified professionals** for accurate and personalized advice.
-    """)
-
 # # --- Sidebar ---
 with st.sidebar:
 
     # -- Sidebar Section #1 --
+    st.markdown(
+        "<hr style='margin: 5px 0; padding: 0;'>",
+        unsafe_allow_html=True
+    )
+    st.header("Project:")
+
+    project_titles = ["Digital Multi-Channel Recorder (DMR)", "Page Express"]
+    selected_project = st.selectbox(
+                            "Select Project", 
+                            project_titles, 
+                            key="project_title", 
+                            index=0,
+                            on_change=reset_chat)
+
+    # -- Sidebar Section #2 --
     st.markdown(
         "<hr style='margin: 5px 0; padding: 0;'>",
         unsafe_allow_html=True
@@ -157,7 +168,7 @@ with st.sidebar:
     with cols0[1]:
         st.button("Clear Chat", on_click=lambda: st.session_state.messages.clear(), type="primary")
 
-    # -- Sidebar Section #2 --
+    # -- Sidebar Section #3 --
     st.markdown(
         "<hr style='margin: 3px 0; padding: 0;'>",
         unsafe_allow_html=True
@@ -181,7 +192,7 @@ with st.sidebar:
         key="rag_url",
     )
 
-    # -- Sidebar Section #3 --
+    # -- Sidebar Section #4 --
     st.markdown(
         "<hr style='margin: 3px 0; padding: 0;'>",
         unsafe_allow_html=True
@@ -190,7 +201,7 @@ with st.sidebar:
     with st.expander(f"📚 Documents in DB ({0 if not is_vector_db_loaded else len(st.session_state.rag_sources)})"):
         st.write([] if not is_vector_db_loaded else [source for source in st.session_state.rag_sources])
 
-    # -- Sidebar Section #4 --
+    # -- Sidebar Section #5 --
     st.markdown(
         "<hr style='margin: 3px 0; padding: 0;'>",
         unsafe_allow_html=True
@@ -218,6 +229,24 @@ with st.sidebar:
         )
     else:
         st.error("❌ Failed to load Methodology document.")
+
+## --- Display Project ---
+st.markdown(
+    f"<h4 style='text-align: center; font-weight:normal;'>{st.session_state['project_title']}</h4>",
+    unsafe_allow_html=True
+)
+
+# # --- Disclaimer ---
+with st.expander("📢 **Disclaimer**"):
+    st.markdown("""
+    **IMPORTANT NOTICE:** This web application is developed as a proof-of-concept prototype.  
+    The information provided here is **NOT** intended for actual usage and should not be relied upon for making any decisions, especially those related to **financial**, **legal**, or **healthcare** matters.
+
+    Furthermore, please be aware that the **LLM may generate inaccurate or incorrect information**.  
+    You assume full responsibility for how you use any generated output.
+
+    Always consult with **qualified professionals** for accurate and personalized advice.
+    """)
 
 # --- Main Chat App ---
 model_provider = st.session_state.model.split("/")[0]
